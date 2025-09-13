@@ -1,0 +1,5 @@
+{
+  "name": "Sistema de inventario de alimentos del Hogar",
+  "description": "A modern web application to manage your home food inventory. Track items, expiration dates, and get AI-powered recipe suggestions based on what you have.",
+  "requestFramePermissions": []
+}

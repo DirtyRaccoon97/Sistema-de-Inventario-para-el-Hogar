@@ -1,8 +1,9 @@
 
+
 import React, { useState, useEffect } from 'react';
-import type { InventoryItem } from '../types';
-import { FoodType, UnitOfMeasure, Location } from '../types';
-import { FOOD_TYPE_OPTIONS, UNIT_OPTIONS, LOCATION_OPTIONS } from '../constants';
+import type { InventoryItem, Location } from '../types';
+import { FoodType, UnitOfMeasure } from '../types';
+import { FOOD_TYPE_OPTIONS, UNIT_OPTIONS } from '../constants';
 import { CloseIcon } from './Icons';
 
 interface ItemFormModalProps {
@@ -10,6 +11,7 @@ interface ItemFormModalProps {
   onClose: () => void;
   onSubmit: (item: Omit<InventoryItem, 'id' | 'dateAdded'>, id?: number) => void;
   itemToEdit?: InventoryItem | null;
+  locations: Location[];
 }
 
 const initialFormState: Omit<InventoryItem, 'id' | 'dateAdded'> = {
@@ -19,13 +21,14 @@ const initialFormState: Omit<InventoryItem, 'id' | 'dateAdded'> = {
   expirationDate: '',
   quantity: 1,
   unit: UnitOfMeasure.ITEM,
-  location: Location.PANTRY,
+  locationId: 0,
 };
 
-export const ItemFormModal: React.FC<ItemFormModalProps> = ({ isOpen, onClose, onSubmit, itemToEdit }) => {
+export const ItemFormModal: React.FC<ItemFormModalProps> = ({ isOpen, onClose, onSubmit, itemToEdit, locations }) => {
   const [formData, setFormData] = useState(initialFormState);
 
   useEffect(() => {
+    const defaultState = { ...initialFormState, locationId: locations[0]?.id || 0 };
     if (itemToEdit) {
       setFormData({
           name: itemToEdit.name,
@@ -34,16 +37,16 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({ isOpen, onClose, o
           expirationDate: itemToEdit.expirationDate || '',
           quantity: itemToEdit.quantity,
           unit: itemToEdit.unit,
-          location: itemToEdit.location
+          locationId: itemToEdit.locationId
       });
     } else {
-      setFormData(initialFormState);
+      setFormData(defaultState);
     }
-  }, [itemToEdit, isOpen]);
+  }, [itemToEdit, isOpen, locations]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: name === 'quantity' ? Number(value) : value }));
+    setFormData(prev => ({ ...prev, [name]: (name === 'quantity' || name === 'locationId') ? Number(value) : value }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -90,9 +93,9 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({ isOpen, onClose, o
                 </select>
             </div>
             <div>
-              <label htmlFor="location" className="block text-sm font-medium text-slate-700 dark:text-slate-300">Ubicacion</label>
-              <select name="location" id="location" value={formData.location} onChange={handleChange} className="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                  {LOCATION_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+              <label htmlFor="locationId" className="block text-sm font-medium text-slate-700 dark:text-slate-300">Ubicacion</label>
+              <select name="locationId" id="locationId" value={formData.locationId} onChange={handleChange} className="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                  {locations.map(opt => <option key={opt.id} value={opt.id}>{opt.name}</option>)}
               </select>
             </div>
           </div>

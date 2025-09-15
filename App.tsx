@@ -1,23 +1,36 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import type { InventoryItem, Movement, Recipe } from './types';
+import type { InventoryItem, Movement, Recipe, Location } from './types';
 import { MovementType } from './types';
 import { InventoryDashboard } from './components/InventoryDashboard';
 import { ItemFormModal } from './components/ItemFormModal';
 import { MovementHistory } from './components/MovementHistory';
 import { RecipeSuggestionModal } from './components/RecipeSuggestionModal';
 import { suggestRecipes } from './services/geminiService';
-import { SparklesIcon, HistoryIcon, InventoryIcon, BarChartIcon } from './components/Icons';
+import { SparklesIcon, HistoryIcon, InventoryIcon, BarChartIcon, BuildingIcon } from './components/Icons';
 import { Alerts } from './components/Alerts';
 import { ReportsDashboard } from './components/ReportsDashboard';
+import { LocationManagement } from './components/LocationManagement';
+import { LocationFormModal } from './components/LocationFormModal';
 
 
-type ActiveView = 'inventory' | 'history' | 'reports';
+type ActiveView = 'inventory' | 'history' | 'reports' | 'locations';
 
 function App() {
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [movements, setMovements] = useState<Movement[]>([]);
+  const [locations, setLocations] = useState<Location[]>([
+    { id: 1, name: 'Refrigerador' },
+    { id: 2, name: 'Congelador' },
+    { id: 3, name: 'Despensa' },
+    { id: 4, name: 'Mueble' },
+  ]);
+  
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [itemToEdit, setItemToEdit] = useState<InventoryItem | null>(null);
+
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [locationToEdit, setLocationToEdit] = useState<Location | null>(null);
+  
   const [activeView, setActiveView] = useState<ActiveView>('inventory');
   
   const [isRecipeModalOpen, setIsRecipeModalOpen] = useState(false);
@@ -109,11 +122,40 @@ function App() {
         setRecipeIsLoading(false);
     }
   }, [items]);
-  
+
+  const handleLocationFormSubmit = useCallback((id: number | undefined, name: string) => {
+    if (id) {
+      setLocations(prev => prev.map(loc => loc.id === id ? { ...loc, name } : loc));
+    } else {
+      const newLocation: Location = { id: Date.now(), name };
+      setLocations(prev => [...prev, newLocation]);
+    }
+  }, []);
+
+  const handleDeleteLocation = useCallback((id: number) => {
+    const isLocationInUse = items.some(item => item.locationId === id);
+    if (isLocationInUse) {
+      alert('No se puede eliminar esta ubicación porque está en uso por uno o más artículos del inventario.');
+      return;
+    }
+    if (window.confirm('¿Estás seguro de que quieres eliminar permanentemente esta ubicación?')) {
+      setLocations(prev => prev.filter(loc => loc.id !== id));
+    }
+  }, [items]);
+
+  const handleOpenAddLocationModal = useCallback(() => {
+    setLocationToEdit(null);
+    setIsLocationModalOpen(true);
+  }, []);
+
+  const handleOpenEditLocationModal = useCallback((location: Location) => {
+    setLocationToEdit(location);
+    setIsLocationModalOpen(true);
+  }, []);
+
   const sortedItems = useMemo(() => {
     return [...items].sort((a,b) => a.name.localeCompare(b.name));
   }, [items]);
-
 
   const TabButton: React.FC<{ view: ActiveView, label: string, icon: React.ReactNode }> = ({ view, label, icon }) => (
     <button
@@ -137,6 +179,7 @@ function App() {
                     <Alerts items={items} />
                     <InventoryDashboard 
                         items={sortedItems}
+                        locations={locations}
                         onAdjustQuantity={handleAdjustQuantity}
                         onEdit={handleOpenEditModal}
                         onDelete={handleDeleteItem}
@@ -147,7 +190,14 @@ function App() {
         case 'history':
             return <MovementHistory movements={movements} />;
         case 'reports':
-            return <ReportsDashboard items={items} movements={movements} />;
+            return <ReportsDashboard items={items} movements={movements} locations={locations} />;
+        case 'locations':
+            return <LocationManagement
+                        locations={locations}
+                        onAdd={handleOpenAddLocationModal}
+                        onEdit={handleOpenEditLocationModal}
+                        onDelete={handleDeleteLocation}
+                   />;
         default:
             return null;
     }
@@ -169,10 +219,11 @@ function App() {
       </header>
 
       <main>
-        <div className="mb-6 flex items-center gap-2 p-2 bg-slate-100 dark:bg-slate-800 rounded-lg max-w-min">
+        <div className="mb-6 flex items-center gap-2 p-2 bg-slate-100 dark:bg-slate-800 rounded-lg max-w-min flex-wrap">
           <TabButton view="inventory" label="Inventario" icon={<InventoryIcon className="w-5 h-5"/>} />
           <TabButton view="history" label="Historial" icon={<HistoryIcon className="w-5 h-5"/>} />
           <TabButton view="reports" label="Reportes" icon={<BarChartIcon className="w-5 h-5"/>} />
+          <TabButton view="locations" label="Ubicaciones" icon={<BuildingIcon className="w-5 h-5"/>} />
         </div>
 
         {renderActiveView()}
@@ -183,6 +234,7 @@ function App() {
         onClose={handleCloseFormModal}
         onSubmit={handleFormSubmit}
         itemToEdit={itemToEdit}
+        locations={locations}
       />
       
       <RecipeSuggestionModal
@@ -191,6 +243,13 @@ function App() {
         recipes={recipes}
         isLoading={recipeIsLoading}
         error={recipeError}
+      />
+
+      <LocationFormModal
+        isOpen={isLocationModalOpen}
+        onClose={() => setIsLocationModalOpen(false)}
+        onSubmit={handleLocationFormSubmit}
+        locationToEdit={locationToEdit}
       />
     </div>
   );

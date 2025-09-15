@@ -1,23 +1,23 @@
 import React from 'react';
-import type { InventoryItem } from '../types';
-import { Location } from '../types';
-import { PlusIcon, MinusIcon, EditIcon, TrashIcon, FridgeIcon, PantryIcon, FreezerIcon, CounterIcon, AlertTriangleIcon } from './Icons';
+import type { InventoryItem, Location } from '../types';
+import { PlusIcon, MinusIcon, EditIcon, TrashIcon, FridgeIcon, PantryIcon, FreezerIcon, CounterIcon, AlertTriangleIcon, BuildingIcon } from './Icons';
 
 interface InventoryItemCardProps {
   item: InventoryItem;
+  locations: Location[];
   onAdjustQuantity: (id: number, newQuantity: number) => void;
   onEdit: (item: InventoryItem) => void;
   onDelete: (id: number) => void;
 }
 
-const LocationIcon: React.FC<{ location: Location }> = ({ location }) => {
+const LocationIcon: React.FC<{ locationName?: string }> = ({ locationName }) => {
     const iconProps = { className: 'w-5 h-5 mr-2 text-slate-500 dark:text-slate-400' };
-    switch (location) {
-        case Location.REFRIGERATOR: return <FridgeIcon {...iconProps} />;
-        case Location.PANTRY: return <PantryIcon {...iconProps} />;
-        case Location.FREEZER: return <FreezerIcon {...iconProps} />;
-        case Location.COUNTER: return <CounterIcon {...iconProps} />;
-        default: return null;
+    switch (locationName) {
+        case 'Refrigerador': return <FridgeIcon {...iconProps} />;
+        case 'Despensa': return <PantryIcon {...iconProps} />;
+        case 'Congelador': return <FreezerIcon {...iconProps} />;
+        case 'Mueble': return <CounterIcon {...iconProps} />;
+        default: return <BuildingIcon {...iconProps} />;
     }
 };
 
@@ -64,8 +64,10 @@ const ExpirationBadge: React.FC<{ expDate?: string }> = ({ expDate }) => {
     );
 };
 
-export const InventoryItemCard: React.FC<InventoryItemCardProps> = ({ item, onAdjustQuantity, onEdit, onDelete }) => {
+export const InventoryItemCard: React.FC<InventoryItemCardProps> = ({ item, locations, onAdjustQuantity, onEdit, onDelete }) => {
   const isOutOfStock = item.quantity === 0;
+  const location = locations.find(l => l.id === item.locationId);
+
   return (
     <div className={`shadow-md rounded-lg p-5 flex flex-col justify-between transition-all hover:shadow-lg hover:-translate-y-1 ${isOutOfStock ? 'opacity-70 bg-slate-50 dark:bg-slate-800/50' : 'bg-white dark:bg-slate-800'}`}>
       <div>
@@ -79,8 +81,8 @@ export const InventoryItemCard: React.FC<InventoryItemCardProps> = ({ item, onAd
 
         <div className="space-y-2 text-sm text-slate-600 dark:text-slate-300 mb-4">
             <div className="flex items-center">
-                <LocationIcon location={item.location} />
-                <span>{item.location}</span>
+                <LocationIcon locationName={location?.name} />
+                <span>{location?.name || 'Ubicación desconocida'}</span>
             </div>
             <div className="flex items-center">
                 <ExpirationBadge expDate={item.expirationDate}/>

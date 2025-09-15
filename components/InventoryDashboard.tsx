@@ -1,18 +1,20 @@
 
+
 import React from 'react';
-import type { InventoryItem } from '../types';
+import type { InventoryItem, Location } from '../types';
 import { InventoryItemCard } from './InventoryItemCard';
 import { PlusIcon } from './Icons';
 
 interface InventoryDashboardProps {
   items: InventoryItem[];
+  locations: Location[];
   onAdjustQuantity: (id: number, newQuantity: number) => void;
   onEdit: (item: InventoryItem) => void;
   onDelete: (id: number) => void;
   onAddItem: () => void;
 }
 
-export const InventoryDashboard: React.FC<InventoryDashboardProps> = ({ items, onAdjustQuantity, onEdit, onDelete, onAddItem }) => {
+export const InventoryDashboard: React.FC<InventoryDashboardProps> = ({ items, locations, onAdjustQuantity, onEdit, onDelete, onAddItem }) => {
   return (
     <div className="w-full">
       <div className="flex justify-between items-center mb-6">
@@ -29,6 +31,7 @@ export const InventoryDashboard: React.FC<InventoryDashboardProps> = ({ items, o
             <InventoryItemCard 
               key={item.id}
               item={item}
+              locations={locations}
               onAdjustQuantity={onAdjustQuantity}
               onEdit={onEdit}
               onDelete={onDelete}

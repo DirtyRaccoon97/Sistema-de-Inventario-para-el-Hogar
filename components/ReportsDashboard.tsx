@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import type { InventoryItem, Movement } from '../types';
+import type { InventoryItem, Movement, Location } from '../types';
 import { MovementType } from '../types';
 import { DownloadIcon } from './Icons';
 
@@ -10,6 +10,7 @@ declare var jspdf: any;
 interface ReportsDashboardProps {
   items: InventoryItem[];
   movements: Movement[];
+  locations: Location[];
 }
 
 interface ChartData {
@@ -52,10 +53,24 @@ const BarChart: React.FC<{ data: ChartData[] }> = ({ data }) => {
 };
 
 
-export const ReportsDashboard: React.FC<ReportsDashboardProps> = ({ items, movements }) => {
+export const ReportsDashboard: React.FC<ReportsDashboardProps> = ({ items, movements, locations }) => {
+  
+  const getLocationName = (locationId: number) => {
+    return locations.find(l => l.id === locationId)?.name || 'N/A';
+  };
 
   const handleExportExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(items.map(({ id, ...rest }) => rest)); // Exclude ID
+    const dataToExport = items.map(item => ({
+      Nombre: item.name,
+      Tipo: item.foodType,
+      Marca: item.brand || 'N/A',
+      Cantidad: item.quantity,
+      Unidad: item.unit,
+      Ubicación: getLocationName(item.locationId),
+      Expiración: item.expirationDate || 'N/A',
+      'Fecha de Adición': item.dateAdded,
+    }));
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Inventory");
     XLSX.writeFile(workbook, "home-inventory.xlsx");
@@ -73,7 +88,7 @@ export const ReportsDashboard: React.FC<ReportsDashboardProps> = ({ items, movem
             item.brand || 'N/A',
             item.quantity,
             item.unit,
-            item.location,
+            getLocationName(item.locationId),
             item.expirationDate || 'N/A'
         ]),
     });

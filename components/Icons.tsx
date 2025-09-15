@@ -105,3 +105,10 @@ export const DownloadIcon: React.FC<{ className?: string }> = ({ className }) =>
         <line x1="12" y1="15" x2="12" y2="3" />
     </svg>
 );
+
+export const BuildingIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
+    <path d="M9 9h6v2H9zM9 13h6v2H9z"></path>
+  </svg>
+);

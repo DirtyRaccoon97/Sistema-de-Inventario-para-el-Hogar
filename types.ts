@@ -1,4 +1,5 @@
 
+
 export enum FoodType {
   DAIRY = 'Lacteos',
   LEGUME = 'Legumbres',
@@ -27,11 +28,9 @@ export enum UnitOfMeasure {
   BAG = 'Bolsa(s)',
 }
 
-export enum Location {
-  REFRIGERATOR = 'Refrigerador',
-  FREEZER = 'Congelador',
-  PANTRY = 'Despensa',
-  COUNTER = 'Mueble',
+export interface Location {
+  id: number;
+  name: string;
 }
 
 export interface InventoryItem {
@@ -43,7 +42,7 @@ export interface InventoryItem {
   dateAdded: string;
   quantity: number;
   unit: UnitOfMeasure;
-  location: Location;
+  locationId: number;
 }
 
 export enum MovementType {
